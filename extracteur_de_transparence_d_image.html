@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effaceur de Fond & Transparence Image</title>
+    <!-- Tailwind CSS pour un design moderne et responsive -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Police Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Pattern Damier pour la transparence */
+        .checkerboard-bg {
+            background-color: #ffffff;
+            background-image: 
+                linear-gradient(45deg, #e2e8f0 25%, transparent 25%), 
+                linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #e2e8f0 75%), 
+                linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        .checkerboard-dark {
+            background-color: #1e293b;
+            background-image: 
+                linear-gradient(45deg, #0f172a 25%, transparent 25%), 
+                linear-gradient(-45deg, #0f172a 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #0f172a 75%), 
+                linear-gradient(-45deg, transparent 75%, #0f172a 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col justify-between overflow-x-hidden">
+
+    <!-- En-tête -->
+    <header class="bg-slate-800/80 backdrop-blur border-b border-slate-700/50 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid font-bold fa-wand-magic-sparkles text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">TransparImage</h1>
+                    <p class="text-xs text-slate-400">Rendez vos fonds d'images transparents en un clic</p>
+                </div>
+            </div>
+
+            <!-- Boutons d'action haut -->
+            <div id="topActions" class="hidden flex items-center gap-3">
+                <button id="resetImageBtn" class="px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Réinitialiser
+                </button>
+                <button id="newImageBtn" class="px-3 py-1.5 text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-plus"></i> Nouvelle Image
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Zone Principale -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
+
+        <!-- Zone de Dépôt / Upload (Affiche par défaut) -->
+        <div id="uploadContainer" class="w-full max-w-2xl mx-auto my-auto">
+            <div id="dropZone" class="border-2 border-dashed border-slate-600 hover:border-indigo-500 bg-slate-800/50 hover:bg-slate-800/80 transition-all rounded-2xl p-8 md:p-12 text-center cursor-pointer flex flex-col items-center justify-center group shadow-xl">
+                <input type="file" id="fileInput" class="hidden" accept="image/png, image/jpeg, image/webp">
+                
+                <div class="w-20 h-20 bg-slate-700/50 group-hover:bg-indigo-600/20 group-hover:scale-110 rounded-full flex items-center justify-center mb-5 transition-all text-indigo-400">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl"></i>
+                </div>
+
+                <h2 class="text-xl font-bold text-slate-100 mb-2">Glissez-déposez votre image ici</h2>
+                <p class="text-sm text-slate-400 mb-6 max-w-sm">Prend en charge les formats PNG, JPG et WEBP. Vos fichiers restent 100% privés et traités localement.</p>
+
+                <button class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 text-sm">
+                    <i class="fa-regular fa-folder-open"></i> Parcourir les fichiers
+                </button>
+            </div>
+
+            <!-- Démo d'exemples -->
+            <div class="mt-8 text-center">
+                <p class="text-xs text-slate-400 mb-3 font-medium uppercase tracking-wider">Ou essayez avec ces exemples</p>
+                <div class="flex justify-center gap-4">
+                    <button class="sample-btn border border-slate-700 rounded-lg p-1 bg-slate-800 hover:border-indigo-500 transition-all" data-sample="logo">
+                        <img src="https://placehold.co/100x100/312e81/ffffff?text=LOGO" alt="Logo Exemple" class="w-16 h-16 object-cover rounded">
+                    </button>
+                    <button class="sample-btn border border-slate-700 rounded-lg p-1 bg-slate-800 hover:border-indigo-500 transition-all" data-sample="product">
+                        <img src="https://placehold.co/100x100/0284c7/ffffff?text=OBJET" alt="Produit Exemple" class="w-16 h-16 object-cover rounded">
+                    </button>
+                    <button class="sample-btn border border-slate-700 rounded-lg p-1 bg-slate-800 hover:border-indigo-500 transition-all" data-sample="icon">
+                        <img src="https://placehold.co/100x100/15803d/ffffff?text=ICONE" alt="Icône Exemple" class="w-16 h-16 object-cover rounded">
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editeur / Studio d'édition (Caché au départ) -->
+        <div id="editorContainer" class="hidden flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            
+            <!-- Panneau de Contrôle / Outils (Gauche sur grand écran) -->
+            <div class="lg:col-span-1 bg-slate-800 rounded-2xl border border-slate-700/60 p-5 shadow-xl flex flex-col gap-6">
+                
+                <!-- En-tête Panneau -->
+                <div class="border-b border-slate-700 pb-3">
+                    <h2 class="font-semibold text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i> Mode de suppression
+                    </h2>
+                </div>
+
+                <!-- Choix du Mode -->
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900/60 rounded-xl border border-slate-700/50">
+                    <button id="modePipette" class="mode-btn active px-3 py-2 text-xs font-medium rounded-lg flex flex-col items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-sm">
+                        <i class="fa-solid fa-eye-dropper text-sm"></i> Clic / Pipette
+                    </button>
+                    <button id="modeAuto" class="mode-btn px-3 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 rounded-lg flex flex-col items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-robot text-sm"></i> Auto-Détection
+                    </button>
+                </div>
+
+                <!-- Indicateur de Couleur Sélectionnée (Visible en mode Pipette) -->
+                <div id="colorPickerInfo" class="bg-slate-900/40 border border-slate-700/40 rounded-xl p-3 flex items-center justify-between">
+                    <span class="text-xs text-slate-400">Couleur ciblée :</span>
+                    <div class="flex items-center gap-2">
+                        <div id="colorPreview" class="w-6 h-6 rounded-md border border-slate-500 shadow-inner" style="background-color: transparent;"></div>
+                        <span id="colorHex" class="text-xs font-mono text-slate-300">Aucune</span>
+                    </div>
+                </div>
+
+                <!-- Paramètres de Réglage -->
+                <div class="space-y-5">
+                    <!-- Slider Tolérance -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="toleranceSlider" class="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                                Tolérance / Sensibilité 
+                                <i class="fa-regular fa-circle-question text-slate-500 text-[10px]" title="Ajuste la marge d'erreur pour les couleurs proches de la cible"></i>
+                            </label>
+                            <span id="toleranceVal" class="text-xs font-bold text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">20%</span>
+                        </div>
+                        <input type="range" id="toleranceSlider" min="0" max="100" value="20" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+
+                    <!-- Slider Adoucissement (Feather) -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="featherSlider" class="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                                Adoucissement des contours
+                                <i class="fa-regular fa-circle-question text-slate-500 text-[10px]" title="Evite les bords coupants en créant un dégradé de transparence"></i>
+                            </label>
+                            <span id="featherVal" class="text-xs font-bold text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">1 px</span>
+                        </div>
+                        <input type="range" id="featherSlider" min="0" max="10" value="1" step="0.5" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Options d'Affichage / Fond de la zone -->
+                <div class="border-t border-slate-700/60 pt-4">
+                    <label class="text-xs font-medium text-slate-400 block mb-2">Fond de prévisualisation</label>
+                    <div class="flex items-center justify-between gap-2">
+                        <button class="bg-view-btn active flex-1 py-1.5 text-xs rounded-lg border border-indigo-500 bg-indigo-600/20 text-indigo-300 transition-all flex justify-center items-center gap-1" data-bg="checkerboard">
+                            <i class="fa-solid fa-border-all"></i> Damier
+                        </button>
+                        <button class="bg-view-btn flex-1 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600 transition-all flex justify-center items-center gap-1" data-bg="white">
+                            <span class="w-3 h-3 rounded-full bg-white border border-slate-300"></span> Blanc
+                        </button>
+                        <button class="bg-view-btn flex-1 py-1.5 text-xs rounded-lg border border-slate-700 bg-slate-900 text-slate-300 hover:border-slate-600 transition-all flex justify-center items-center gap-1" data-bg="black">
+                            <span class="w-3 h-3 rounded-full bg-black border border-slate-600"></span> Noir
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bouton Téléchargement -->
+                <div class="pt-2">
+                    <button id="downloadBtn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold rounded-xl shadow-lg shadow-teal-900/40 transition-all flex items-center justify-center gap-2 group">
+                        <i class="fa-solid fa-download group-hover:translate-y-0.5 transition-transform"></i> Télécharger en PNG
+                    </button>
+                    <p class="text-[10px] text-center text-slate-400 mt-2">Conservation du format original HD avec couche Alpha</p>
+                </div>
+
+            </div>
+
+            <!-- Zone Visualisation Canvases (Droite sur grand écran) -->
+            <div class="lg:col-span-3 flex flex-col gap-4">
+                
+                <div class="bg-slate-800 rounded-2xl border border-slate-700/60 p-4 shadow-xl flex flex-col items-center justify-center min-h-[450px] relative overflow-hidden">
+                    
+                    <!-- Message/Indication Mode Pipette -->
+                    <div id="pipetteInstruction" class="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-slate-700 text-xs text-indigo-300 px-3 py-1.5 rounded-full z-10 flex items-center gap-2 shadow-lg backdrop-blur">
+                        <i class="fa-solid fa-hand-pointer animate-bounce"></i> Cliquez sur n'importe quel pixel de l'image pour le rendre transparent
+                    </div>
+
+                    <!-- Conteneur d'affichage principal (Canvas interactif) -->
+                    <div id="canvasViewport" class="checkerboard-bg rounded-xl border border-slate-600 overflow-hidden shadow-inner max-w-full flex items-center justify-center relative cursor-crosshair">
+                        <!-- Canvas Réel de Travail -->
+                        <canvas id="mainCanvas" class="max-w-full h-auto block object-contain"></canvas>
+                    </div>
+
+                    <!-- Informations sur la dimension de l'image -->
+                    <div class="w-full flex justify-between items-center mt-3 text-xs text-slate-400 px-2">
+                        <span id="imageDimensions"><i class="fa-regular fa-image mr-1"></i> 0 x 0 px</span>
+                        <span id="statusText" class="text-indigo-400 font-medium">Prêt</span>
+                    </div>
+
+                </div>
+
+                <!-- Comparatif rapide (Original vs Résultat) -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 flex items-center gap-3">
+                        <div class="w-12 h-12 rounded border border-slate-600 overflow-hidden bg-slate-900 shrink-0 flex items-center justify-center">
+                            <canvas id="thumbOriginal" class="max-w-full max-h-full object-contain"></canvas>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold text-slate-300">Originale</h4>
+                            <p class="text-[11px] text-slate-400">Sans modification</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 flex items-center gap-3">
+                        <div class="w-12 h-12 rounded border border-slate-600 overflow-hidden checkerboard-bg shrink-0 flex items-center justify-center">
+                            <canvas id="thumbProcessed" class="max-w-full max-h-full object-contain"></canvas>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold text-indigo-300">Résultat transparent</h4>
+                            <p class="text-[11px] text-slate-400">Aperçu direct</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Pied de page -->
+    <footer class="bg-slate-950 border-t border-slate-800/80 py-4 px-4 text-center text-xs text-slate-400 mt-auto">
+        <p>TransparImage &copy; 2026 - Outil 100% navigateur & sans envoi de fichier vers un serveur distant.</p>
+    </footer>
+
+    <!-- Logique JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Éléments du DOM
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const uploadContainer = document.getElementById('uploadContainer');
+            const editorContainer = document.getElementById('editorContainer');
+            const topActions = document.getElementById('topActions');
+
+            const mainCanvas = document.getElementById('mainCanvas');
+            const ctx = mainCanvas.getContext('2d', { willReadFrequently: true });
+            const canvasViewport = document.getElementById('canvasViewport');
+
+            const thumbOriginal = document.getElementById('thumbOriginal');
+            const ctxThumbOriginal = thumbOriginal.getContext('2d');
+            const thumbProcessed = document.getElementById('thumbProcessed');
+            const ctxThumbProcessed = thumbProcessed.getContext('2d');
+
+            const modePipetteBtn = document.getElementById('modePipette');
+            const modeAutoBtn = document.getElementById('modeAuto');
+            const pipetteInstruction = document.getElementById('pipetteInstruction');
+
+            const toleranceSlider = document.getElementById('toleranceSlider');
+            const toleranceVal = document.getElementById('toleranceVal');
+            const featherSlider = document.getElementById('featherSlider');
+            const featherVal = document.getElementById('featherVal');
+
+            const colorPreview = document.getElementById('colorPreview');
+            const colorHex = document.getElementById('colorHex');
+            const imageDimensions = document.getElementById('imageDimensions');
+            const statusText = document.getElementById('statusText');
+
+            const downloadBtn = document.getElementById('downloadBtn');
+            const resetImageBtn = document.getElementById('resetImageBtn');
+            const newImageBtn = document.getElementById('newImageBtn');
+
+            // Variables d'état
+            let currentImage = null;
+            let originalImageData = null;
+            let currentMode = 'pipette'; // 'pipette' ou 'auto'
+            let selectedColor = null; // {r, g, b}
+            let activeBgView = 'checkerboard';
+
+            // --- Gestion de l'import d'image ---
+
+            // Clic sur zone de dépôt
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            // Drag & Drop
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-indigo-500', 'bg-slate-800');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-indigo-500', 'bg-slate-800');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-indigo-500', 'bg-slate-800');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+            // Boutons d'exemples
+            document.querySelectorAll('.sample-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const sampleType = btn.getAttribute('data-sample');
+                    generateSampleImage(sampleType);
+                });
+            });
+
+            function handleFile(file) {
+                if (!file.type.match('image.*')) {
+                    alert('Veuillez sélectionner un fichier image valide (PNG, JPG, WEBP).');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => loadImageToEditor(img);
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Génération de fausses images de test dynamiques sur canvas
+            function generateSampleImage(type) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 500;
+                tempCanvas.height = 500;
+                const tCtx = tempCanvas.getContext('2d');
+
+                if (type === 'logo') {
+                    // Fond solide vert (Chroma Key)
+                    tCtx.fillStyle = '#00ff00';
+                    tCtx.fillRect(0, 0, 500, 500);
+                    // Forme au centre
+                    tCtx.fillStyle = '#6366f1';
+                    tCtx.beginPath();
+                    tCtx.arc(250, 250, 150, 0, Math.PI * 2);
+                    tCtx.fill();
+                    // Texte
+                    tCtx.fillStyle = '#ffffff';
+                    tCtx.font = 'bold 60px Inter, sans-serif';
+                    tCtx.textAlign = 'center';
+                    tCtx.fillText('LOGO', 250, 270);
+                } else if (type === 'product') {
+                    // Fond blanc pur
+                    tCtx.fillStyle = '#ffffff';
+                    tCtx.fillRect(0, 0, 500, 500);
+                    // Forme d'un objet
+                    tCtx.fillStyle = '#f43f5e';
+                    tCtx.roundRect(150, 120, 200, 260, 30);
+                    tCtx.fill();
+                    tCtx.fillStyle = '#0f172a';
+                    tCtx.font = 'bold 30px Inter, sans-serif';
+                    tCtx.textAlign = 'center';
+                    tCtx.fillText('PRODUIT', 250, 260);
+                } else {
+                    // Fond bleu uniforme
+                    tCtx.fillStyle = '#3b82f6';
+                    tCtx.fillRect(0, 0, 500, 500);
+                    // Icône étoile
+                    tCtx.fillStyle = '#fbbf24';
+                    tCtx.beginPath();
+                    tCtx.arc(250, 250, 120, 0, Math.PI * 2);
+                    tCtx.fill();
+                }
+
+                const img = new Image();
+                img.onload = () => loadImageToEditor(img);
+                img.src = tempCanvas.toDataURL();
+            }
+
+            // Charger l'image dans l'éditeur
+            function loadImageToEditor(img) {
+                currentImage = img;
+
+                // Dimensionner le canvas principal
+                mainCanvas.width = img.width;
+                mainCanvas.height = img.height;
+
+                // Dessiner l'image originale
+                ctx.drawImage(img, 0, 0);
+
+                // Sauvegarder les données brutes
+                originalImageData = ctx.getImageData(0, 0, img.width, img.height);
+
+                // Mettre à jour les miniatures
+                updateThumbnails(img);
+
+                // Afficher l'interface éditeur
+                uploadContainer.classList.add('hidden');
+                editorContainer.classList.remove('hidden');
+                topActions.classList.remove('hidden');
+
+                // Infos dimensions
+                imageDimensions.innerHTML = `<i class="fa-regular fa-image mr-1"></i> ${img.width} x ${img.height} px`;
+
+                // Réinitialiser la couleur choisie
+                selectedColor = null;
+                colorPreview.style.backgroundColor = 'transparent';
+                colorHex.textContent = 'Aucune';
+
+                // Si mode auto, lancer tout de suite
+                if (currentMode === 'auto') {
+                    processAutoBackground();
+                } else {
+                    statusText.textContent = 'Cliquez sur l\'image pour choisir une couleur';
+                }
+            }
+
+            // Mise à jour des aperçus miniatures
+            function updateThumbnails(img) {
+                thumbOriginal.width = 100;
+                thumbOriginal.height = (img.height / img.width) * 100;
+                ctxThumbOriginal.drawImage(img, 0, 0, thumbOriginal.width, thumbOriginal.height);
+
+                thumbProcessed.width = thumbOriginal.width;
+                thumbProcessed.height = thumbOriginal.height;
+                ctxThumbProcessed.drawImage(mainCanvas, 0, 0, thumbProcessed.width, thumbProcessed.height);
+            }
+
+            // --- Gestion des Modes & Interactions ---
+
+            modePipetteBtn.addEventListener('click', () => {
+                currentMode = 'pipette';
+                modePipetteBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                modePipetteBtn.classList.remove('text-slate-400');
+                modeAutoBtn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                modeAutoBtn.classList.add('text-slate-400');
+
+                pipetteInstruction.classList.remove('hidden');
+                statusText.textContent = 'Mode Pipette : Cliquez sur la couleur à effacer';
+            });
+
+            modeAutoBtn.addEventListener('click', () => {
+                currentMode = 'auto';
+                modeAutoBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                modeAutoBtn.classList.remove('text-slate-400');
+                modePipetteBtn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                modePipetteBtn.classList.add('text-slate-400');
+
+                pipetteInstruction.classList.add('hidden');
+                processAutoBackground();
+            });
+
+            // Clic sur Canvas (Mode Pipette)
+            mainCanvas.addEventListener('click', (e) => {
+                if (currentMode !== 'pipette' || !originalImageData) return;
+
+                const rect = mainCanvas.getBoundingClientRect();
+                const scaleX = mainCanvas.width / rect.width;
+                const scaleY = mainCanvas.height / rect.height;
+
+                const x = Math.floor((e.clientX - rect.left) * scaleX);
+                const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+                // Extraire le pixel cliqué depuis l'image ORIGINALE
+                const index = (y * mainCanvas.width + x) * 4;
+                const r = originalImageData.data[index];
+                const g = originalImageData.data[index + 1];
+                const b = originalImageData.data[index + 2];
+
+                selectedColor = { r, g, b };
+
+                // Afficher la couleur sélectionnée
+                const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+                colorPreview.style.backgroundColor = hex;
+                colorHex.textContent = hex.toUpperCase();
+
+                // Lancer le traitement
+                applyTransparency();
+            });
+
+            // Changement des Sliders
+            toleranceSlider.addEventListener('input', (e) => {
+                toleranceVal.textContent = `${e.target.value}%`;
+                if (selectedColor || currentMode === 'auto') {
+                    applyTransparency();
+                }
+            });
+
+            featherSlider.addEventListener('input', (e) => {
+                featherVal.textContent = `${e.target.value} px`;
+                if (selectedColor || currentMode === 'auto') {
+                    applyTransparency();
+                }
+            });
+
+            // --- Algorithme de calcul de Transparence ---
+
+            // Traitement Automatique du Fond (Basé sur la couleur des 4 coins)
+            function processAutoBackground() {
+                if (!originalImageData) return;
+
+                const w = originalImageData.width;
+                const h = originalImageData.height;
+                const data = originalImageData.data;
+
+                // Échantillonner les 4 coins
+                const corners = [
+                    0, // Haut gauche
+                    (w - 1) * 4, // Haut droite
+                    ((h - 1) * w) * 4, // Bas gauche
+                    ((h - 1) * w + (w - 1)) * 4 // Bas droite
+                ];
+
+                let avgR = 0, avgG = 0, avgB = 0;
+                corners.forEach(idx => {
+                    avgR += data[idx];
+                    avgG += data[idx + 1];
+                    avgB += data[idx + 2];
+                });
+
+                selectedColor = {
+                    r: Math.round(avgR / 4),
+                    g: Math.round(avgG / 4),
+                    b: Math.round(avgB / 4)
+                };
+
+                const hex = `#${((1 << 24) + (selectedColor.r << 16) + (selectedColor.g << 8) + selectedColor.b).toString(16).slice(1)}`;
+                colorPreview.style.backgroundColor = hex;
+                colorHex.textContent = hex.toUpperCase() + " (Auto)";
+
+                applyTransparency();
+            }
+
+            // Application du filtrage de pixels
+            function applyTransparency() {
+                if (!originalImageData || !selectedColor) return;
+
+                statusText.textContent = 'Traitement en cours...';
+
+                // Utiliser une micro-pause pour débloquer le rendu UI si nécessaire
+                setTimeout(() => {
+                    const width = originalImageData.width;
+                    const height = originalImageData.height;
+
+                    // Créer une copie brute des données originales
+                    const processedData = ctx.createImageData(width, height);
+                    const src = originalImageData.data;
+                    const dst = processedData.data;
+
+                    const tolerance = parseInt(toleranceSlider.value, 10);
+                    // Conversion de la tolérance (0-100%) en distance euclidienne max (~0-442)
+                    const maxDistance = (tolerance / 100) * 441.67; 
+                    
+                    const feather = parseFloat(featherSlider.value);
+                    const targetR = selectedColor.r;
+                    const targetG = selectedColor.g;
+                    const targetB = selectedColor.b;
+
+                    const totalPixels = width * height * 4;
+
+                    for (let i = 0; i < totalPixels; i += 4) {
+                        const r = src[i];
+                        const g = src[i + 1];
+                        const b = src[i + 2];
+                        const a = src[i + 3];
+
+                        // Distance de couleur (Euclidienne dans l'espace RGB)
+                        const dist = Math.sqrt(
+                            (r - targetR) ** 2 +
+                            (g - targetG) ** 2 +
+                            (b - targetB) ** 2
+                        );
+
+                        dst[i] = r;
+                        dst[i + 1] = g;
+                        dst[i + 2] = b;
+
+                        if (dist <= maxDistance) {
+                            // En dessous du seuil -> Rendre transparent ou appliquer adoucissement
+                            if (feather > 0 && maxDistance > 0) {
+                                // Zone d'adoucissement progressive
+                                const alphaFactor = dist / maxDistance;
+                                dst[i + 3] = Math.floor(a * Math.pow(alphaFactor, feather));
+                            } else {
+                                dst[i + 3] = 0; // Transparence totale
+                            }
+                        } else {
+                            // Conserver le pixel opaque d'origine
+                            dst[i + 3] = a;
+                        }
+                    }
+
+                    // Réécrire sur le canvas
+                    ctx.putImageData(processedData, 0, 0);
+
+                    // Mettre à jour l'aperçu miniature
+                    ctxThumbProcessed.clearRect(0, 0, thumbProcessed.width, thumbProcessed.height);
+                    ctxThumbProcessed.drawImage(mainCanvas, 0, 0, thumbProcessed.width, thumbProcessed.height);
+
+                    statusText.textContent = 'Fond supprimé avec succès';
+                }, 10);
+            }
+
+            // --- Options d'Affichage du Fond de Prévisualisation ---
+            document.querySelectorAll('.bg-view-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.bg-view-btn').forEach(b => {
+                        b.classList.remove('border-indigo-500', 'bg-indigo-600/20', 'text-indigo-300');
+                        b.classList.add('border-slate-700', 'bg-slate-900', 'text-slate-300');
+                    });
+
+                    btn.classList.remove('border-slate-700', 'bg-slate-900', 'text-slate-300');
+                    btn.classList.add('border-indigo-500', 'bg-indigo-600/20', 'text-indigo-300');
+
+                    const type = btn.getAttribute('data-bg');
+                    canvasViewport.className = 'rounded-xl border border-slate-600 overflow-hidden shadow-inner max-w-full flex items-center justify-center relative cursor-crosshair ';
+
+                    if (type === 'checkerboard') {
+                        canvasViewport.classList.add('checkerboard-bg');
+                    } else if (type === 'white') {
+                        canvasViewport.style.backgroundColor = '#ffffff';
+                    } else if (type === 'black') {
+                        canvasViewport.style.backgroundColor = '#000000';
+                    }
+                });
+            });
+
+            // --- Boutons d'Action / Réinitialisation & Export ---
+
+            // Téléchargement
+            downloadBtn.addEventListener('click', () => {
+                if (!currentImage) return;
+
+                // Création d'un lien temporaire pour déclencher le téléchargement PNG
+                const link = document.createElement('a');
+                link.download = 'image-transparente.png';
+                link.href = mainCanvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // Réinitialiser les modifications
+            resetImageBtn.addEventListener('click', () => {
+                if (!originalImageData) return;
+                ctx.putImageData(originalImageData, 0, 0);
+                selectedColor = null;
+                colorPreview.style.backgroundColor = 'transparent';
+                colorHex.textContent = 'Aucune';
+                toleranceSlider.value = 20;
+                toleranceVal.textContent = '20%';
+                featherSlider.value = 1;
+                featherVal.textContent = '1 px';
+                
+                ctxThumbProcessed.clearRect(0, 0, thumbProcessed.width, thumbProcessed.height);
+                ctxThumbProcessed.drawImage(mainCanvas, 0, 0, thumbProcessed.width, thumbProcessed.height);
+                statusText.textContent = 'Image réinitialisée';
+            });
+
+            // Charger une nouvelle image
+            newImageBtn.addEventListener('click', () => {
+                editorContainer.classList.add('hidden');
+                topActions.classList.add('hidden');
+                uploadContainer.classList.remove('hidden');
+                fileInput.value = '';
+                currentImage = null;
+                originalImageData = null;
+            });
+        });
+    </script>
+</body>
+</html>
